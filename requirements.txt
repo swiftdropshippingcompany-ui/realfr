@@ -1,0 +1,4 @@
+discord.py==2.3.2
+Flask==2.3.3
+gspread==5.12.4
+oauth2client==4.1.3
