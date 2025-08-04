@@ -380,7 +380,7 @@ async def ban(interaction: discord.Interaction, user: discord.Member, reason: st
 @app_commands.describe(member="Member to timeout", minutes="Duration in minutes")
 async def timeout(interaction: discord.Interaction, member: discord.Member, minutes: int):
     # Check if the user has the required role
-    if not any(role.name == ALLOWED_ROLES for role in interaction.user.roles):
+    if not is_allowed(interaction):
         await interaction.response.send_message("Imagine no perms.", ephemeral=True)
         return
 
