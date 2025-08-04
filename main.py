@@ -375,10 +375,15 @@ async def ban(interaction: discord.Interaction, user: discord.Member, reason: st
     await user.ban(reason=reason)
     await interaction.response.send_message(f"🔨 {user.name} has been banned. Reason: {reason}")
 
-@app_commands.guilds(discord.Object(id=GUILD_ID))
 @bot.tree.command(name="syfm", description="Timeout a member")
+@app_commands.guilds(discord.Object(id=GUILD_ID))
 @app_commands.describe(member="Member to timeout", minutes="Duration in minutes")
 async def timeout(interaction: discord.Interaction, member: discord.Member, minutes: int):
+    # Check if the user has the required role
+    if not any(role.name == REQUIRED_ROLE_NAME for role in interaction.user.roles):
+        await interaction.response.send_message("Imagine no perms.", ephemeral=True)
+        return
+
     duration = timedelta(minutes=minutes)
     await member.timeout(duration)
     await interaction.response.send_message(f"⏳ {member.mention} has been timed out for {minutes} minutes.")
