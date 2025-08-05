@@ -50,7 +50,7 @@ RULES = {
     2: "Do not speak about unnecessary things.",
     3: "Do not mock or speak badly about allied and/or unallied factions.",
     4: "Spamming is not allowed.",
-    5: "Do not ping Rogue unless an emergency.",
+    5: "Do not ping Cloud unless an emergency.",
     6: "Do not be racist.",
     7:
     "You can be disrespectful in a jokingly manner, as long as you know the consequences.",
