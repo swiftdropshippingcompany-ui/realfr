@@ -36,6 +36,42 @@ EVENTS_CHANNEL_ID = 1309756614387044352
 DEPLOYMENTS_LOG_CHANNEL = 1387310947110228070
 faction = 'Delta-0 "Livid Night"'
 
+# Morph related stuff
+
+SUBDIVISIONS = {
+    1386580409823006821: "null",       # NULL Subdivision
+    1386581427121946654: "triton",     # Triton
+    1396540653638254734: "sanctum",    # Sanctum Aegis
+    1386581617870503997: "ia",         # Intelligence Agency
+}
+
+# Ranks
+RANK_CATEGORIES = {
+    "LR": {
+        1310297309841719358: "Private",
+        1310297313599819880: "Private First Class",
+        1310297316527439942: "Specialist",
+        1310296697200447538: "Lance Corporal",
+        1310296705102774402: "Corporal",
+    },
+    "MR": {
+        1387324925823422514: "Sergeant",
+        1387325096292651078: "Staff Sergeant",
+        1387325177355964426: "Sergeant First Class",
+        1387325283572645949: "Master Sergeant",
+        1397180307119018044: "Sergeant Major",
+        1387325333329547284: "Second Lieutenant",
+    },
+    "HR": {
+        1310295954062184599: "Junior Officer",
+        1310295878048681984: "Lieutenant",
+        1310295415874261043: "Captain",
+        1310295410811863131: "Major",
+        1393617319908872202: "Lieutenant Colonel",
+        1393617950367551499: "Colonel",
+    }
+}
+
 # Bot Setup
 OWNER_ID = 719909192000864398
 intents = discord.Intents.all()
@@ -648,7 +684,7 @@ async def end(
     msg = (
         f"**Site:** {site}\n"
         f"**Faction Name:** Delta-0 \"Livid Night\"\n"
-        f"**Faction Leader:** <@534854012328214559>\n"
+        f"**Faction Leader:** <@1030880102931763301>\n"
         f"**Host:** {interaction.user.mention}\n"
         f"**Co-host:** {cohost_text}\n"
         f"**Attendees:** {attendee_count}\n"
@@ -670,7 +706,7 @@ async def end(
 
 # Auto morph
 
-morphs = {
+NORMAL_MORPHS = {
     "virtus": {
         "LR": 'run permrtag me <font face="Michroma">Delta-0 "Livid Night" | Rank</font> & permntag me <font face="Fantasy">["Callsign"]</font> & permcrtag me 0 0 0 & permcntag me 149 3 1 & permmorph me remove & permshirt me 14572682166 14572536468 & permhat me 0,JSNVG,Holster,89985831397392,17172715247,17330407522,Kneepads,13770147630,16755421666,4507911797,118325759243,18325759243,17430938152,15893925206,17558966643,12383357842 & startergear me mpx,glock & permmaxhealth me 110 & heal me',
         "MR": 'run permrtag me <font face="Michroma">Delta-0 "Livid Night" | Rank</font> & permntag me <font face="Fantasy">["Callsign"]</font> & permcrtag me 0 0 0 & permcntag me 149 3 1 & permmorph me remove & permshirt me 14572682166 14572536468 & permhat me 0,JSNVG,Holster,89985831397392,17172715247,17330407522,Kneepads,13770147630,16755421666,4507911797,118325759243,18325759243,17430938152,15893925206,17558966643,12383357842 & startergear me mpx,glock & permmaxhealth me 110 & heal me',
@@ -683,36 +719,77 @@ morphs = {
     }
 }
 
-@bot.tree.command(name="morph", description="Morph a user automatically.")
+SUBDIVISION_MORPHS = {
+    "null": {
+        "virtus": 'run permrtag me <font face="Michroma">Delta-0 "Livid Night" | NULL | Rank</font> & permntag me <font face="Fondamento">["Callsign"]</font> & permcrtag me 0 0 0 & permcntag me 90 0 0 & permmorph me remove & permhat me jqnvg,Kneepads,17550297611,132291314198827,133667497459205,92050966862265,102790501854441,136018145246290,17724754078,101058082747159,106908710460040,99852547995142,12813807131 & permshirt me 9931529502 10023095999 & permface me 255827175 & permmaxhealth me 130 & heal me & startergear me spas,glock,mpx',
+        "416": 'run permrtag me <font face="Michroma">Delta-0 "Livid Night" | NULL | Rank</font> & permcrtag me 4 2 115 & permmorph me remove & permhat me jqnvg,Kneepads,17550297611,132291314198827,133667497459205,92050966862265,102790501854441,136018145246290,17724754078,101058082747159,106908710460040,99852547995142,12813807131 & permshirt me 9931529502 10023095999 & permface me 255827175 & permmaxhealth me 150 & heal me & startergear me spas,glock,FN'
+    },
+    "triton": {
+        "virtus": 'run permmorph me remove & permhat me nvg,80948103896369,17430975241,89985831397392,18803205025,98695151475583,71963062246007,85695503410351,124639028209079,17820555197,18746311969,89079953984743,17844663743 & permcolornvg me 0 0 139 & permhat me Holster & permhat me Kneepads & permshirt me 11410074921 & permpants me 11410096984 & permrtag me <font face="Michroma">Delta-0 "Livid Night" | Triton Company | Rank</font> & permntag me <font face="Fondamento">["Callsign"]</font> & permcrtag me 4 2 115 & permcntag me 0 0 139 & permmaxhealth me 130 & heal me & startergear me ump,spas,m9,detain,shield',
+        "416": 'run permmorph me remove & permhat me nvg,80948103896369,17430975241,89985831397392,18803205025,98695151475583,71963062246007,85695503410351,124639028209079,17820555197,18746311969,89079953984743,17844663743 & permcolornvg me 0 0 139 & permhat me Holster & permhat me Kneepads & permshirt me 11410074921 & permpants me 11410096984 & permrtag me <font face="Michroma">Delta-0 "Livid Night" | Triton | Rank</font> & permcrtag me 4 2 115 & permmaxhealth me 150 & heal me & startergear me FN,AA-12,Glock'
+    },
+    "sanctum": {
+        "virtus": 'run permrtag me <font face="Michroma">Delta-0 "Livid Night" | Sanctum Aegis | Delta-0 Rank (Shortened Ver)</font> & permcrtag me 4 2 115 & skin me 0 & permntag me <font face="Fantasy">["Callsign"]</font> & permmorph me remove & permshirt me 6474219383 7546412101 & permhat me kneepads,nvg,13781575357,15370673764,71432558566598,17844684610,16624859507,109855952672286,105063223953891,17022597585,8466257321,14254757373,14254754272,12355266837 & permnvg me red & give me medkit 25 & startergear me FN,Glock,AA-2 & permmaxhealth me 130 & heal me',
+        "416": 'run permrtag me <font face="Michroma">Delta-0 "Livid Night" | Sanctum Aegis | Delta-0 Rank (Shortened Ver)</font> & permcrtag me 4 2 115 & skin me 0 & permmorph me remove & permshirt me 6474219383 7546412101 & permhat me kneepads,nvg,13781575357,15370673764,71432558566598,17844684610,16624859507,109855952672286,105063223953891,17022597585,8466257321,14254757373,14254754272,12355266837 & permnvg me red & give me medkit 25 & startergear me FN,Glock,AA-2 & permmaxhealth me 130 & heal me'
+    },
+    "ia": {
+        "virtus": 'run permcntag me 100 0 0 & permcrtag me 0 0 0 & permntag me <font face="Fondamento">"["Callsign"]"</font> & permcrtag me 0 0 0 & permrtag me [ Delta-0 " Livid Night " ] [ Rank ] <font color="#A300C3">[- IA -]</font> & permmorph me remove & permface me 0 & permskin me 0 & permshirt me 7790153293 7790138881 & permhat me 129773133501441,120831755877022,127575108854890,17558966643,4420280348,99852547995142,4507911797,14554041291 & startergear me ak-12,spas,detain,tracker & startergear me medkit black 3 & permmaxhealth me 160',
+        "416": 'run permcrtag me 4 2 115 & permrtag me [ Delta-0 " Livid Night " ] [ Rank ] [- IA -] & permmorph me remove & permface me 0 & permskin me 0 & permshirt me 7790153293 7790138881 & permhat me 129773133501441,120831755877022,127575108854890,17558966643,4420280348,99852547995142,4507911797,14554041291 & startergear me aac,spas,tracker & startergear me medkit black 20 & permmaxhealth me 175'
+    }
+}
+
+
+@bot.tree.command(name="morph", description="Automatically detect morph based on your rank and subdivision.")
 @app_commands.describe(
-    site="Choose the site (416 or Virtus)",
-    roblox_username="Roblox username",
-    rank="Choose the rank (LR, MR, HR)"
+    site="Choose the site (Virtus or 416)",
+    roblox_username="Roblox username"
 )
 @app_commands.choices(site=[
+    app_commands.Choice(name="Virtus", value="virtus"),
     app_commands.Choice(name="416", value="416"),
-    app_commands.Choice(name="Virtus", value="Virtus"),
 ])
-@app_commands.choices(rank=[
-    app_commands.Choice(name="LR", value="LR"),
-    app_commands.Choice(name="MR", value="MR"),
-    app_commands.Choice(name="HR", value="HR"),
-])
-async def morph(interaction: Interaction, site: app_commands.Choice[str], roblox_username: str, rank: app_commands.Choice[str]):
+async def morph(interaction: Interaction, site: app_commands.Choice[str], roblox_username: str):
     await interaction.response.defer(ephemeral=True)
 
-    site_key = site.value.lower()
-    rank_key = rank.value
+    member = interaction.user
 
-    morph_template = morphs.get(site_key, {}).get(rank_key)
-    if not morph_template:
-        await interaction.followup.send(f"Morph data not found for site `{site.value}` and rank `{rank.value}`.", ephemeral=True)
+    # Detect rank
+    rank_category = None
+    rank_name = None
+    for category, roles in RANK_CATEGORIES.items():
+        for role_id, role_title in roles.items():
+            if discord.utils.get(member.roles, id=role_id):
+                rank_category = category
+                rank_name = role_title
+                break
+        if rank_category:
+            break
+
+    if not rank_category:
+        await interaction.followup.send("❌ You do not have a valid rank role.", ephemeral=True)
         return
 
-    # Replace all ' me ' occurrences with the roblox username (surrounded by spaces)
-    morph_text = morph_template.replace(" me ", f" {roblox_username} ")
+    # Detect subdivision
+    subdivision_key = None
+    for role_id, key in SUBDIVISIONS.items():
+        if discord.utils.get(member.roles, id=role_id):
+            subdivision_key = key
+            break
 
-    await interaction.followup.send(f"Morph command for **{site.value}**:\n```\n{morph_text}\n```", ephemeral=True)
+    # Prepare morphs
+    output = []
+    # If subdivision, add its morph
+    if subdivision_key:
+        sub_morph = SUBDIVISION_MORPHS[subdivision_key][site.value]
+        sub_morph = sub_morph.replace(" me ", f" {roblox_username} ").replace("Rank", rank_name)
+        output.append(f"**Subdivision Morph ({subdivision_key.title()})**:\n```\n{sub_morph}\n```")
+
+    # Add normal morph
+    normal_morph = NORMAL_MORPHS[site.value][rank_category]
+    normal_morph = normal_morph.replace(" me ", f" {roblox_username} ").replace("Rank", rank_name)
+    output.append(f"**Normal Morph ({rank_category})**:\n```\n{normal_morph}\n```")
+
+    await interaction.followup.send("\n\n".join(output), ephemeral=True)
 
 
 # Flask app for keeping the bot alive
