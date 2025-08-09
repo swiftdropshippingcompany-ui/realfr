@@ -571,7 +571,7 @@ async def unlock(interaction: discord.Interaction):
 @bot.tree.command(name="g", description="Send a message to #general-chat")
 @app_commands.describe(message="The message to send")
 async def g(interaction: discord.Interaction, message: str):
-    if interaction.user.id != OWNER_ID or if interaction.user.id != ALT_ID:
+    if interaction.user.id != OWNER_ID or interaction.user.id != ALT_ID:
         await interaction.response.send_message("❌ You do not have permission to use this command.", ephemeral=True)
         return
     channel = bot.get_channel(1248647511913136179)
@@ -582,7 +582,7 @@ async def g(interaction: discord.Interaction, message: str):
 @bot.tree.command(name="e", description="Event")
 @app_commands.describe(message="The message to send")
 async def g(interaction: discord.Interaction, message: str):
-    if interaction.user.id != OWNER_ID or if interaction.user.id != ALT_ID:
+    if interaction.user.id != OWNER_ID or interaction.user.id != ALT_ID:
         await interaction.response.send_message("❌ You do not have permission to use this command.", ephemeral=True)
         return
     channel = bot.get_channel(1309756614387044352)
@@ -593,7 +593,7 @@ async def g(interaction: discord.Interaction, message: str):
 @bot.tree.command(name="n", description="Send a message to #major-news")
 @app_commands.describe(message="The message to send")
 async def n(interaction: discord.Interaction, message: str):
-    if interaction.user.id != OWNER_ID or if interaction.user.id != ALT_ID:
+    if interaction.user.id != OWNER_ID or interaction.user.id != ALT_ID:
         await interaction.response.send_message("❌ You do not have permission to use this command.", ephemeral=True)
         return
     channel = bot.get_channel(1309756493314261072)
