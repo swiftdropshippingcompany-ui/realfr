@@ -148,11 +148,11 @@ async def on_message(message):
             return
 
     # Other keywords
-    if ("crazy" in content and random.random() < 0.05) or (message.author.id == ALT_ID and "crazy" in content):
+    if ("crazy" in content and random.random() < 0.05) or (any(role.id == ALT_ID for role in message.author.roles) and "crazy" in content):
         await message.channel.send(
             "Crazy? I was crazy once. They locked me in a room. A rubber room. A rubber room filled with rats. And rats make me crazy.")
         
-    if ("lupus" in content and random.random() < 0.05) or (message.author.id == ALT_ID and "lupus" in content):
+    if ("lupus" in content and random.random() < 0.05) or (any(role.id == ALT_ID for role in message.author.roles) and "crazy" in content):
         lupus_responses = [
             "It's never lupus you absolute dumbfuck.",
             "Still not lupus gang. It's never lupus.",
@@ -571,7 +571,7 @@ async def unlock(interaction: discord.Interaction):
 @bot.tree.command(name="g", description="Send a message to #general-chat")
 @app_commands.describe(message="The message to send")
 async def g(interaction: discord.Interaction, message: str):
-    if interaction.user.id != OWNER_ID or interaction.user.id != ALT_ID:
+    if interaction.user.id != OWNER_ID:
         await interaction.response.send_message("❌ You do not have permission to use this command.", ephemeral=True)
         return
     channel = bot.get_channel(1248647511913136179)
@@ -582,7 +582,7 @@ async def g(interaction: discord.Interaction, message: str):
 @bot.tree.command(name="e", description="Event")
 @app_commands.describe(message="The message to send")
 async def g(interaction: discord.Interaction, message: str):
-    if interaction.user.id != OWNER_ID or interaction.user.id != ALT_ID:
+    if interaction.user.id != OWNER_ID:
         await interaction.response.send_message("❌ You do not have permission to use this command.", ephemeral=True)
         return
     channel = bot.get_channel(1309756614387044352)
@@ -593,7 +593,7 @@ async def g(interaction: discord.Interaction, message: str):
 @bot.tree.command(name="n", description="Send a message to #major-news")
 @app_commands.describe(message="The message to send")
 async def n(interaction: discord.Interaction, message: str):
-    if interaction.user.id != OWNER_ID or interaction.user.id != ALT_ID:
+    if interaction.user.id:
         await interaction.response.send_message("❌ You do not have permission to use this command.", ephemeral=True)
         return
     channel = bot.get_channel(1309756493314261072)
