@@ -152,7 +152,7 @@ async def on_message(message):
         await message.channel.send(
             "Crazy? I was crazy once. They locked me in a room. A rubber room. A rubber room filled with rats. And rats make me crazy.")
         
-    if ("lupus" in content and random.random() < 0.05) or (any(role.id == ALT_ID for role in message.author.roles) and "crazy" in content):
+    if ("lupus" in content and random.random() < 0.05) or (any(role.id == ALT_ID for role in message.author.roles) and "lupus" in content):
         lupus_responses = [
             "It's never lupus you absolute dumbfuck.",
             "Still not lupus gang. It's never lupus.",
