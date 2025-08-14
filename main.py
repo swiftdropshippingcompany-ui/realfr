@@ -159,9 +159,14 @@ async def on_message(message):
             "<@510784737800093716> would be disappointed.",
             "Lupus? I had lupus once. They locked me in a room. A room filled with lupus. And lupus makes me lupus.",
             "Gang plz stop im done saying its never lupus.",
-        ]
-        await message.channel.send(random.choice(lupus_responses))
-
+            "<@510784737800093716> is in a 5km radius to your location and approaching rapidly."]
+        
+            if random.random() < 0.05:
+                lupus = "<@510784737800093716> is in a 5km radius to your location and approaching rapidly."
+                await message.channel.send(lupus)
+            else:
+                await message.channel.send(random.choice(lupus_responses))
+        
 
 # Utility Functions
 
