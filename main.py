@@ -2,6 +2,7 @@ import discord
 from discord import Interaction, User
 from discord.ext import commands
 from discord import app_commands
+from discord import Webhook, AsyncWebhookAdapter
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from discord.ui import View, Button
@@ -16,6 +17,7 @@ import typing
 from typing import Optional
 import random
 import math
+import aiohttp
 
 # Google Sheets Setup
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -123,44 +125,6 @@ PROTOCOLS = {
     6:
     "Do not break in-site rules and use common sense otherwise there will be consequences.",
 }
-
-@bot.event
-async def on_message(message):
-    if message.author.bot:
-        return
-
-    content = message.content.lower()
-
-    # Check Rules with regex to match only rule followed by number 1-15
-    rule_match = re.search(r"\brule\s*(\d+)\b", content)
-    if rule_match:
-        rule_num = int(rule_match.group(1))
-        if rule_num in RULES:
-            await message.channel.send(RULES[rule_num])
-            return
-
-    # Check Protocols
-    protocol_match = re.search(r"\bprotocol\s*(\d{1,2})\b", content)
-    if protocol_match:
-        protocol_num = int(protocol_match.group(1))
-        if protocol_num in PROTOCOLS:
-            await message.channel.send(PROTOCOLS[protocol_num])
-            return
-
-    # Other keywords
-    if ("crazy" in content and random.random() < 0.05) or (any(role.id == ALT_ID for role in message.author.roles) and "crazy" in content):
-        await message.channel.send(
-            "Crazy? I was crazy once. They locked me in a room. A rubber room. A rubber room filled with rats. And rats make me crazy.")
-        
-    if ("lupus" in content and random.random() < 0.05) or (any(role.id == ALT_ID for role in message.author.roles) and "lupus" in content):
-        lupus_responses = [
-            "It's never lupus you absolute dumbfuck.",
-            "Still not lupus gang. It's never lupus.",
-            "<@510784737800093716> would be disappointed.",
-            "Lupus? I had lupus once. They locked me in a room. A room filled with lupus. And lupus makes me lupus.",
-            "Gang plz stop im done saying its never lupus.",
-            "<@510784737800093716> is in a 5km radius to your location and approaching rapidly."]
-        await message.channel.send(random.choice(lupus_responses))
         
 
 # Utility Functions
@@ -792,6 +756,165 @@ async def morph(interaction: Interaction, site: app_commands.Choice[str], roblox
 
     await interaction.followup.send("\n\n".join(output), ephemeral=True)
 
+
+# Automatic Time Conversion
+
+ROLE_TIMEZONE = {
+    1408201360179986442: timedelta(hours=-12),
+    1408201391985393717: timedelta(hours=-11),
+    1408201413259038800: timedelta(hours=-10),
+    1408201433198891099: timedelta(hours=-9, minutes=-30),
+    1408201470603690026: timedelta(hours=-9),
+    1408201500093841490: timedelta(hours=-8),
+    1408201511015813130: timedelta(hours=-7),
+    1408201537989115964: timedelta(hours=-6),
+    1408201549250826370: timedelta(hours=-5),
+    1408201567202443467: timedelta(hours=-4, minutes=-30),
+    1408201593727488122: timedelta(hours=-4),
+    1408201612261982363: timedelta(hours=-3, minutes=-30),
+    1408201635406024905: timedelta(hours=-3),
+    1408201652661522632: timedelta(hours=-2),
+    1408201671590543391: timedelta(hours=-1),
+    1408201683892441109: timedelta(hours=0),   # GMT
+    1408201699520151682: timedelta(hours=1),
+    1408201721787973722: timedelta(hours=2),
+    1408201748866142239: timedelta(hours=3),
+    1408201766037622824: timedelta(hours=3, minutes=30),
+    1408201789416800296: timedelta(hours=4),
+    1408201809851322409: timedelta(hours=4, minutes=30),
+    1408201832798355730: timedelta(hours=5),
+    1408201850238271499: timedelta(hours=5, minutes=30),
+    1408201868491886782: timedelta(hours=5, minutes=45),
+    1408201889908260975: timedelta(hours=6),
+    1408201905397694588: timedelta(hours=6, minutes=30),
+    1408201936897052743: timedelta(hours=7),
+    1408201965498007585: timedelta(hours=8),
+    1408201998154858526: timedelta(hours=8, minutes=45),
+    1408201985043464274: timedelta(hours=9),
+    1408202082590265528: timedelta(hours=9, minutes=30),
+    1408202098885267456: timedelta(hours=10),
+    1408202115507028069: timedelta(hours=10, minutes=30),
+    1408202132254884012: timedelta(hours=11),
+    1408202151767052308: timedelta(hours=12),
+    1408202169055711332: timedelta(hours=12, minutes=45),
+    1408202186097168445: timedelta(hours=13),
+    1408202202757201983: timedelta(hours=14),
+}
+
+# Regex for times like "3pm", "11 am", etc.
+TIME_REGEX = re.compile(r'(\d{1,2})\s?(am|pm)', re.IGNORECASE)
+
+intents = discord.Intents.default()
+intents.message_content = True
+intents.guilds = True
+intents.members = True
+
+bot = commands.Bot(command_prefix="!", intents=intents)
+
+
+async def get_or_create_webhook(channel: discord.TextChannel):
+    """Get existing webhook or create a new one for this channel"""
+    webhooks = await channel.webhooks()
+    for webhook in webhooks:
+        if webhook.user == bot.user:
+            return webhook
+    return await channel.create_webhook(name="TimeBot")
+
+@bot.event
+async def on_message(message: discord.Message):
+    if message.author.bot:
+        return
+
+    content = message.content.lower()
+
+    # Check Rules with regex to match only rule followed by number 1-15
+    rule_match = re.search(r"\brule\s*(\d+)\b", content)
+    if rule_match:
+        rule_num = int(rule_match.group(1))
+        if rule_num in RULES:
+            await message.channel.send(RULES[rule_num])
+            return
+
+    # Check Protocols
+    protocol_match = re.search(r"\bprotocol\s*(\d{1,2})\b", content)
+    if protocol_match:
+        protocol_num = int(protocol_match.group(1))
+        if protocol_num in PROTOCOLS:
+            await message.channel.send(PROTOCOLS[protocol_num])
+            return
+
+    # Other keywords
+    if ("crazy" in content and random.random() < 0.05) or (any(role.id == ALT_ID for role in message.author.roles) and "crazy" in content):
+        await message.channel.send(
+            "Crazy? I was crazy once. They locked me in a room. A rubber room. A rubber room filled with rats. And rats make me crazy.")
+        
+    if ("lupus" in content and random.random() < 0.05) or (any(role.id == ALT_ID for role in message.author.roles) and "lupus" in content):
+        lupus_responses = [
+            "It's never lupus you absolute dumbfuck.",
+            "Still not lupus gang. It's never lupus.",
+            "<@510784737800093716> would be disappointed.",
+            "Lupus? I had lupus once. They locked me in a room. A room filled with lupus. And lupus makes me lupus.",
+            "Gang plz stop im done saying its never lupus.",
+            "<@510784737800093716> is in a 5km radius to your location and approaching rapidly."]
+        await message.channel.send(random.choice(lupus_responses))
+
+
+    if message.author.bot:
+        return
+
+    match = TIME_REGEX.search(message.content)
+    if not match:
+        return
+
+    hour, ampm = int(match.group(1)), match.group(2).lower()
+
+    # Convert to 24h
+    if ampm == "pm" and hour != 12:
+        hour += 12
+    if ampm == "am" and hour == 12:
+        hour = 0
+
+    # Find user's timezone role
+    user_offset = None
+    for role in message.author.roles:
+        if role.id in ROLE_TIMEZONES:
+            user_offset = ROLE_TIMEZONES[role.id]
+            break
+
+    if user_offset is None:
+        return  # User has no timezone role, ignore
+
+    # Convert user's time to UTC
+    utc_time = datetime.utcnow().replace(
+        hour=hour, minute=0, second=0, microsecond=0
+    ) - timedelta(hours=user_offset)
+
+    # Build conversions for all roles
+    converted_times = []
+    for role_id, offset in ROLE_TIMEZONES.items():
+        local_time = (utc_time + timedelta(hours=offset)).strftime("%I:%M %p")
+        converted_times.append(f"<@&{role_id}> → {local_time}")
+
+    embed = discord.Embed(
+        title="🕒 Time Conversion",
+        description="\n".join(converted_times),
+        color=discord.Color.blue()
+    )
+    embed.set_footer(text=f"Original: {message.content} (by {message.author.display_name})")
+
+    # Send via webhook (with impersonation)
+    webhook = await get_or_create_webhook(message.channel)
+    async with aiohttp.ClientSession() as session:
+        webhook = Webhook.from_url(webhook.url, adapter=AsyncWebhookAdapter(session))
+        await webhook.send(
+            embed=embed,
+            username=message.author.display_name,
+            avatar_url=message.author.display_avatar.url
+        )
+
+    # Delete original message so only clean embed remains
+    await message.delete()
+    
 
 # Flask app for keeping the bot alive
 app = Flask('')
