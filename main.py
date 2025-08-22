@@ -2,7 +2,7 @@ import discord
 from discord import Interaction, User
 from discord.ext import commands
 from discord import app_commands
-from discord import Webhook, AsyncWebhookAdapter
+from discord import Webhook
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from discord.ui import View, Button
@@ -17,7 +17,6 @@ import typing
 from typing import Optional
 import random
 import math
-import aiohttp
 
 # Google Sheets Setup
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -820,6 +819,7 @@ async def get_or_create_webhook(channel: discord.TextChannel):
             return webhook
     return await channel.create_webhook(name="TimeBot")
 
+
 @bot.event
 async def on_message(message: discord.Message):
     if message.author.bot:
@@ -884,7 +884,7 @@ async def on_message(message: discord.Message):
     if user_offset is None:
         return  # User has no timezone role, ignore
 
-    # Convert user's time to UTC
+    # Convert user's local time → UTC
     utc_time = datetime.utcnow().replace(
         hour=hour, minute=0, second=0, microsecond=0
     ) - timedelta(hours=user_offset)
@@ -902,17 +902,15 @@ async def on_message(message: discord.Message):
     )
     embed.set_footer(text=f"Original: {message.content} (by {message.author.display_name})")
 
-    # Send via webhook (with impersonation)
+    # Send via webhook (direct in v2.0)
     webhook = await get_or_create_webhook(message.channel)
-    async with aiohttp.ClientSession() as session:
-        webhook = Webhook.from_url(webhook.url, adapter=AsyncWebhookAdapter(session))
-        await webhook.send(
-            embed=embed,
-            username=message.author.display_name,
-            avatar_url=message.author.display_avatar.url
-        )
+    await webhook.send(
+        embed=embed,
+        username=message.author.display_name,
+        avatar_url=message.author.display_avatar.url
+    )
 
-    # Delete original message so only clean embed remains
+    # Delete original message
     await message.delete()
     
 
