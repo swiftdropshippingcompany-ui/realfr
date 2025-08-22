@@ -814,6 +814,59 @@ async def get_or_create_webhook(channel: discord.TextChannel):
 
 @bot.event
 async def on_message(message: discord.Message):
+
+    if message.author.bot:
+        return
+
+    match = TIME_REGEX.search(message.content)
+    if not match:
+        return
+
+    hour, ampm = int(match.group(1)), match.group(2).lower()
+
+    # Convert to 24h
+    if ampm == "pm" and hour != 12:
+        hour += 12
+    if ampm == "am" and hour == 12:
+        hour = 0
+
+    # Find user's timezone role
+    user_offset = None
+    for role in message.author.roles:
+        if role.id in ROLE_TIMEZONES:
+            user_offset = ROLE_TIMEZONES[role.id]
+            break
+
+    if user_offset is None:
+        return  # No timezone role found
+
+    # Current UTC time
+    now_utc = datetime.now(timezone.utc)
+
+    # User's time → UTC
+    user_time = now_utc.replace(hour=hour, minute=0, second=0, microsecond=0) - user_offset
+
+    # Convert to timestamp
+    timestamp = int(user_time.timestamp())
+
+    # Replace the time in message with Discord timestamp
+    content_with_timestamp = TIME_REGEX.sub(f"<t:{timestamp}:f>", message.content)
+
+    # Send normal message via webhook with user's name and avatar
+    webhook = await get_or_create_webhook(message.channel)
+    await webhook.send(
+        content=content_with_timestamp,
+        username=message.author.display_name,
+        avatar_url=message.author.display_avatar.url
+    )
+
+    # Delete original message
+    await message.delete()
+
+
+
+    # Rule and Protocol
+    
     if message.author.bot:
         return
 
@@ -849,52 +902,6 @@ async def on_message(message: discord.Message):
             "Gang plz stop im done saying its never lupus.",
             "<@510784737800093716> is in a 5km radius to your location and approaching rapidly."]
         await message.channel.send(random.choice(lupus_responses))
-
-
-    if message.author.bot:
-        return
-    
-    match = TIME_REGEX.search(message.content)
-    if not match:
-        return
-    
-    hour, ampm = int(match.group(1)), match.group(2).lower()
-    
-    # Convert to 24h
-    if ampm == "pm" and hour != 12:
-        hour += 12
-    if ampm == "am" and hour == 12:
-        hour = 0
-    
-    # Assume the user is in GMT+4 (adjust if needed)
-    user_timezone_offset = 4  # hours
-    
-    now_utc = datetime.now(timezone.utc)
-    
-    # Build a datetime object for the time today in user's timezone
-    user_time = now_utc.replace(hour=hour - user_timezone_offset, minute=0, second=0, microsecond=0)
-    
-    # Convert to timestamp
-    timestamp = int(user_time.timestamp())
-    
-    # Replace original time in message with Discord timestamp
-    content_with_timestamp = TIME_REGEX.sub(f"<t:{timestamp}:f>", message.content)
-    
-    # Send embed via webhook with user's name and avatar
-    embed = discord.Embed(
-        description=content_with_timestamp,
-        color=discord.Color.blue()
-    )
-    
-    webhook = await get_or_create_webhook(message.channel)
-    await webhook.send(
-        embed=embed,
-        username=message.author.display_name,
-        avatar_url=message.author.display_avatar.url
-    )
-    
-    # Delete the original message
-    await message.delete()
     
 
 # Flask app for keeping the bot alive
