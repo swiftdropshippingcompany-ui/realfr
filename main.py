@@ -801,7 +801,7 @@ ROLE_TIMEZONES = {
 }
 
 # Regex for times like "3pm", "11 am", etc.
-TIME_REGEX = re.compile(r'(\d{1,2})\s?(am|pm)', re.IGNORECASE)
+TIME_REGEX = re.compile(r'(\d{1,2})(?::(\d{2}))?\s?(am|pm)', re.IGNORECASE)
 
 async def get_or_create_webhook(channel: discord.TextChannel):
     """Get existing webhook or create a new one for this channel"""
@@ -822,7 +822,9 @@ async def on_message(message: discord.Message):
     if not match:
         return
 
-    hour, ampm = int(match.group(1)), match.group(2).lower()
+    hour = int(match.group(1))
+    minute = int(match.group(2)) if match.group(2) else 0
+    ampm = match.group(3).lower()
 
     # Convert to 24h
     if ampm == "pm" and hour != 12:
@@ -844,13 +846,12 @@ async def on_message(message: discord.Message):
     now_utc = datetime.now(timezone.utc)
 
     # User's time → UTC
-    user_time = now_utc.replace(hour=hour, minute=0, second=0, microsecond=0) - user_offset
-
+    user_time = now_utc.replace(hour=hour, minute=minute, second=0, microsecond=0) - user_offset
     # Convert to timestamp
     timestamp = int(user_time.timestamp())
 
     # Replace the time in message with Discord timestamp
-    content_with_timestamp = TIME_REGEX.sub(f"<t:{timestamp}:f>", message.content)
+    content_with_timestamp = TIME_REGEX.sub(f"<t:{timestamp}:t>", message.content)
 
     # Send normal message via webhook with user's name and avatar
     webhook = await get_or_create_webhook(message.channel)
