@@ -758,7 +758,7 @@ async def morph(interaction: Interaction, site: app_commands.Choice[str], roblox
 
 # Automatic Time Conversion
 
-ROLE_TIMEZONE = {
+ROLE_TIMEZONES = {
     1408201360179986442: timedelta(hours=-12),
     1408201391985393717: timedelta(hours=-11),
     1408201413259038800: timedelta(hours=-10),
