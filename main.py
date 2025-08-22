@@ -392,10 +392,13 @@ async def timeout(interaction: discord.Interaction, member: discord.Member, minu
 @bot.tree.command(name="purge", description="Delete a number of messages")
 @app_commands.describe(amount="Number of messages to delete")
 async def purge(interaction: discord.Interaction, amount: int):
+    if not is_allowed(interaction):
+        await interaction.response.send_message("nuh uh", ephemeral=True)
+        return
     await interaction.channel.purge(limit=amount)
-    await interaction.response.send_message(f"🧹 Deleted {amount} messages.")
+    await interaction.response.send_message(f"Deleted {amount} messages.")
     log_channel = bot.get_channel(AUDIT_LOG_CHANNEL_ID)
-    await log_channel.send(f"🧹 {interaction.user.mention} purged {amount} messages in {interaction.channel.mention}")
+    await log_channel.send(f"{interaction.user.mention} purged {amount} messages in {interaction.channel.mention}")
 
 # Deployment Log
 
