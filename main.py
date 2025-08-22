@@ -860,7 +860,7 @@ async def on_message(message: discord.Message):
 
 
     if message.author.bot:
-    return
+        return
 
     match = TIME_REGEX.search(message.content)
     if not match:
