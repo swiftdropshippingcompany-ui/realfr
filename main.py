@@ -854,7 +854,7 @@ async def on_message(message: discord.Message):
     timestamp = int(user_time.timestamp())
 
     # Replace the time in message with Discord timestamp
-    content_with_timestamp = TIME_REGEX.sub(f"<t:{timestamp}:t>", message.content)
+    content_with_timestamp = TIME_REGEX.sub(f"<t:{timestamp}:r>", message.content)
 
     # Send normal message via webhook with user's name and avatar
     webhook = await get_or_create_webhook(message.channel)
