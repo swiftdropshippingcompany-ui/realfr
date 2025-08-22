@@ -853,55 +853,46 @@ async def on_message(message: discord.Message):
 
     if message.author.bot:
         return
-
+    
     match = TIME_REGEX.search(message.content)
     if not match:
         return
-
+    
     hour, ampm = int(match.group(1)), match.group(2).lower()
-
+    
     # Convert to 24h
     if ampm == "pm" and hour != 12:
         hour += 12
     if ampm == "am" and hour == 12:
         hour = 0
-
-    # Find user's timezone role
-    user_offset = None
-    for role in message.author.roles:
-        if role.id in ROLE_TIMEZONES:
-            user_offset = ROLE_TIMEZONES[role.id]
-            break
-
-    if user_offset is None:
-        return  # User has no timezone role
-
-    # Convert user's local time → UTC
+    
+    # Assume the user is in GMT+4 (adjust if needed)
+    user_timezone_offset = 4  # hours
+    
     now_utc = datetime.now(timezone.utc)
-    user_time = now_utc.replace(hour=hour, minute=0, second=0, microsecond=0) - user_offset
-
-    # Build conversions for all roles using Discord timestamps
-    converted_times = []
-    for role_id, offset in ROLE_TIMEZONES.items():
-        local_time = user_time + offset
-        timestamp = int(local_time.timestamp())
-        converted_times.append(f"<@&{role_id}> → <t:{timestamp}:f> (<t:{timestamp}:R>)")
-
+    
+    # Build a datetime object for the time today in user's timezone
+    user_time = now_utc.replace(hour=hour - user_timezone_offset, minute=0, second=0, microsecond=0)
+    
+    # Convert to timestamp
+    timestamp = int(user_time.timestamp())
+    
+    # Replace original time in message with Discord timestamp
+    content_with_timestamp = TIME_REGEX.sub(f"<t:{timestamp}:f>", message.content)
+    
+    # Send embed via webhook with user's name and avatar
     embed = discord.Embed(
-        title="🕒 Time Conversion",
-        description="\n".join(converted_times),
+        description=content_with_timestamp,
         color=discord.Color.blue()
     )
-    embed.set_footer(text=f"Original: {message.content} (by {message.author.display_name})")
-
-    # Send embed via webhook with user's name and avatar
+    
     webhook = await get_or_create_webhook(message.channel)
     await webhook.send(
         embed=embed,
         username=message.author.display_name,
         avatar_url=message.author.display_avatar.url
     )
-
+    
     # Delete the original message
     await message.delete()
     
