@@ -883,7 +883,7 @@ async def on_message(message: discord.Message):
     # Build conversions for all roles using Discord timestamps
     converted_times = []
     for role_id, offset in ROLE_TIMEZONES.items():
-        local_time = user_time + timedelta(hours=offset)
+        local_time = user_time + offset
         timestamp = int(local_time.timestamp())
         converted_times.append(f"<@&{role_id}> → <t:{timestamp}:f> (<t:{timestamp}:R>)")
 
