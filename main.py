@@ -860,58 +860,58 @@ async def on_message(message: discord.Message):
 
 
     if message.author.bot:
-        return
+    return
 
-    match = TIME_REGEX.search(message.content)
-    if not match:
-        return
+match = TIME_REGEX.search(message.content)
+if not match:
+    return
 
-    hour, ampm = int(match.group(1)), match.group(2).lower()
+hour, ampm = int(match.group(1)), match.group(2).lower()
 
-    # Convert to 24h
-    if ampm == "pm" and hour != 12:
-        hour += 12
-    if ampm == "am" and hour == 12:
-        hour = 0
+# Convert to 24h
+if ampm == "pm" and hour != 12:
+    hour += 12
+if ampm == "am" and hour == 12:
+    hour = 0
 
-    # Find user's timezone role
-    user_offset = None
-    for role in message.author.roles:
-        if role.id in ROLE_TIMEZONES:
-            user_offset = ROLE_TIMEZONES[role.id]
-            break
+# Find user's timezone role
+user_offset = None
+for role in message.author.roles:
+    if role.id in ROLE_TIMEZONES:
+        user_offset = ROLE_TIMEZONES[role.id]
+        break
 
-    if user_offset is None:
-        return  # User has no timezone role, ignore
+if user_offset is None:
+    return  # User has no timezone role, ignore
 
-    # Convert user's local time → UTC
-    utc_time = datetime.utcnow().replace(
-        hour=hour, minute=0, second=0, microsecond=0
-    ) - timedelta(hours=user_offset)
+# Convert user's local time → UTC
+utc_time = datetime.now(timezone.utc).replace(
+    hour=hour, minute=0, second=0, microsecond=0
+) - user_offset  # <-- Use timedelta directly
 
-    # Build conversions for all roles
-    converted_times = []
-    for role_id, offset in ROLE_TIMEZONES.items():
-        local_time = (utc_time + timedelta(hours=offset)).strftime("%I:%M %p")
-        converted_times.append(f"<@&{role_id}> → {local_time}")
+# Build conversions for all roles
+converted_times = []
+for role_id, offset in ROLE_TIMEZONES.items():
+    local_time = (utc_time + offset).strftime("%I:%M %p")  # <-- timedelta already
+    converted_times.append(f"<@&{role_id}> → {local_time}")
 
-    embed = discord.Embed(
-        title="🕒 Time Conversion",
-        description="\n".join(converted_times),
-        color=discord.Color.blue()
-    )
-    embed.set_footer(text=f"Original: {message.content} (by {message.author.display_name})")
+embed = discord.Embed(
+    title="🕒 Time Conversion",
+    description="\n".join(converted_times),
+    color=discord.Color.blue()
+)
+embed.set_footer(text=f"Original: {message.content} (by {message.author.display_name})")
 
-    # Send via webhook (direct in v2.0)
-    webhook = await get_or_create_webhook(message.channel)
-    await webhook.send(
-        embed=embed,
-        username=message.author.display_name,
-        avatar_url=message.author.display_avatar.url
-    )
+# Send via webhook (direct in v2.0)
+webhook = await get_or_create_webhook(message.channel)
+await webhook.send(
+    embed=embed,
+    username=message.author.display_name,
+    avatar_url=message.author.display_avatar.url
+)
 
-    # Delete original message
-    await message.delete()
+# Delete original message
+await message.delete()
     
 
 # Flask app for keeping the bot alive
