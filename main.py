@@ -867,50 +867,50 @@ async def on_message(message: discord.Message):
         return
 
     hour, ampm = int(match.group(1)), match.group(2).lower()
-    
+
     # Convert to 24h
     if ampm == "pm" and hour != 12:
         hour += 12
     if ampm == "am" and hour == 12:
         hour = 0
-    
+
     # Find user's timezone role
     user_offset = None
     for role in message.author.roles:
         if role.id in ROLE_TIMEZONES:
             user_offset = ROLE_TIMEZONES[role.id]
             break
-    
+
     if user_offset is None:
-        return  # User has no timezone role, ignore
-    
+        return  # User has no timezone role
+
     # Convert user's local time → UTC
-    utc_time = datetime.now(timezone.utc).replace(
-        hour=hour, minute=0, second=0, microsecond=0
-    ) - user_offset  # <-- Use timedelta directly
-    
-    # Build conversions for all roles
+    now_utc = datetime.now(timezone.utc)
+    user_time = now_utc.replace(hour=hour, minute=0, second=0, microsecond=0) - timedelta(hours=user_offset)
+
+    # Build conversions for all roles using Discord timestamps
     converted_times = []
     for role_id, offset in ROLE_TIMEZONES.items():
-        local_time = (utc_time + offset).strftime("%I:%M %p")  # <-- timedelta already
-        converted_times.append(f"<@&{role_id}> → {local_time}")
-    
+        local_time = user_time + timedelta(hours=offset)
+        timestamp = int(local_time.timestamp())
+        converted_times.append(f"<@&{role_id}> → <t:{timestamp}:f> (<t:{timestamp}:R>)")
+
     embed = discord.Embed(
         title="🕒 Time Conversion",
         description="\n".join(converted_times),
         color=discord.Color.blue()
     )
     embed.set_footer(text=f"Original: {message.content} (by {message.author.display_name})")
-    
-    # Send via webhook (direct in v2.0)
+
+    # Send embed via webhook with user's name and avatar
     webhook = await get_or_create_webhook(message.channel)
     await webhook.send(
         embed=embed,
         username=message.author.display_name,
         avatar_url=message.author.display_avatar.url
     )
-    
-    # Delete original message
+
+    # Delete the original message
     await message.delete()
     
 
