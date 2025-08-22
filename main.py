@@ -803,14 +803,6 @@ ROLE_TIMEZONES = {
 # Regex for times like "3pm", "11 am", etc.
 TIME_REGEX = re.compile(r'(\d{1,2})\s?(am|pm)', re.IGNORECASE)
 
-intents = discord.Intents.default()
-intents.message_content = True
-intents.guilds = True
-intents.members = True
-
-bot = commands.Bot(command_prefix="!", intents=intents)
-
-
 async def get_or_create_webhook(channel: discord.TextChannel):
     """Get existing webhook or create a new one for this channel"""
     webhooks = await channel.webhooks()
@@ -886,7 +878,7 @@ async def on_message(message: discord.Message):
 
     # Convert user's local time → UTC
     now_utc = datetime.now(timezone.utc)
-    user_time = now_utc.replace(hour=hour, minute=0, second=0, microsecond=0) - timedelta(hours=user_offset)
+    user_time = now_utc.replace(hour=hour, minute=0, second=0, microsecond=0) - user_offset
 
     # Build conversions for all roles using Discord timestamps
     converted_times = []
