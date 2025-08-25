@@ -75,7 +75,7 @@ RANK_CATEGORIES = {
 
 # Bot Setup
 OWNER_ID = 719909192000864398
-ALT_ID = 1386580650777378888
+ALT_ID = 1409541631392092160
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix=commands.when_mentioned_or("d!"), intents=intents)
 
