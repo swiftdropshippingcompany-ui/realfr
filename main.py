@@ -559,7 +559,7 @@ async def g(interaction: discord.Interaction, message: str):
 @bot.tree.command(name="n", description="Send a message to #major-news")
 @app_commands.describe(message="The message to send")
 async def n(interaction: discord.Interaction, message: str):
-    if interaction.user.id:
+    if interaction.user.id != OWNER_ID:
         await interaction.response.send_message("❌ You do not have permission to use this command.", ephemeral=True)
         return
     channel = bot.get_channel(1309756493314261072)
