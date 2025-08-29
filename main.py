@@ -906,6 +906,17 @@ async def on_message(message: discord.Message):
             "Gang plz stop im done saying its never lupus.",
             "<@510784737800093716> is in a 5km radius to your location and approaching rapidly."]
         await message.channel.send(random.choice(lupus_responses))
-    
+
+
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "I'm alive!"
+
+def run():
+    app.run(host='0.0.0.0', port=8080)
+
+Thread(target=run).start()  # runs Flask in background
 
 bot.run(os.environ["DISCORD_BOT_TOKEN"])
